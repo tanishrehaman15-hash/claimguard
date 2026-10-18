@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+data/
+artifacts/claimguard.so
+docs/video/build/
+docs/presentation/build/
+*.mp4
+*.webm
+*.aiff

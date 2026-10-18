@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Caveat:wght@700&display=block" rel="stylesheet">
+<script src="build/data.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #07142b; color: #f4f7fb; font-family: Inter, sans-serif; }
+  .bg { background: radial-gradient(900px 600px at 15% 10%, #1546b5 0%, transparent 60%),
+                    radial-gradient(800px 600px at 95% 95%, #0b5fa8 0%, transparent 55%), #07142b; position: relative; overflow: hidden; }
+  .grid { position: absolute; inset: 0; opacity: .1; background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px); background-size: 48px 48px; }
+  /* thumbnail 1280x720 */
+  #thumb { width: 1280px; height: 720px; }
+  #thumb .t1 { position: absolute; left: 70px; top: 90px; font: 900 118px/1 Poppins; letter-spacing: -0.04em; }
+  #thumb .t1 .r { color: #fa4d56; } #thumb .t1 .c { color: #33b1ff; }
+  #thumb .t2 { position: absolute; left: 76px; top: 400px; font: 700 44px Poppins; color: #c9d4e8; }
+  #thumb .shield { position: absolute; right: 70px; top: 120px; font-size: 330px; filter: drop-shadow(0 30px 60px rgba(15,98,254,.7)); transform: rotate(8deg); }
+  #thumb .pill { position: absolute; left: 76px; top: 500px; display: flex; gap: 18px; }
+  .p { padding: 14px 26px; border-radius: 999px; font: 800 32px Poppins; }
+  #thumb .stamp { position: absolute; right: 60px; bottom: 60px; font: 900 46px Poppins; color: #42be65; border: 7px solid #42be65;
+    padding: 6px 26px; border-radius: 14px; transform: rotate(-6deg); background: rgba(7,20,43,.6); }
+  #thumb .hand { position: absolute; left: 80px; bottom: 50px; font: 700 52px Caveat; color: #f1c21b; }
+  /* flyer A4 at 150 dpi: 1240x1754 */
+  #flyer { width: 1240px; height: 1754px; padding: 70px 90px; }
+  #flyer h1 { font: 900 112px/1 Poppins; letter-spacing: -0.04em; margin-top: 10px; }
+  #flyer h1 span { color: #33b1ff; }
+  #flyer .kicker { font: 700 21px Poppins; letter-spacing: .14em; color: #33b1ff; }
+  #flyer .tag { font: 700 42px/1.25 Poppins; margin-top: 20px; }
+  #flyer .tag .g { color: #42be65; } #flyer .tag .r { color: #fa4d56; }
+  .box { border-radius: 26px; background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); padding: 30px 34px; }
+  .row { display: grid; gap: 16px; margin-top: 24px; }
+  .lane { display: flex; gap: 22px; align-items: center; font: 800 32px Poppins; border-radius: 20px; padding: 14px 28px; }
+  .lane small { display: block; font: 500 22px Inter; opacity: .85; }
+  .lane .e { font-size: 54px; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .stat { text-align: center; } .stat b { display: block; font: 900 72px Poppins; letter-spacing: -0.03em; } .stat span { font: 600 22px Poppins; color: #c9d4e8; }
+  .z { grid-template-columns: 1fr 1fr; }
+  .zi { font: 700 26px Poppins; display: flex; gap: 14px; align-items: center; } .zi .e { font-size: 40px; }
+  .team { margin-top: 30px; font: 600 24px Poppins; color: #c9d4e8; line-height: 1.6; }
+  .live { margin-top: 26px; font: 700 26px Poppins; color: #42be65; }
+</style>
+</head>
+<body>
+<div class="bg" id="thumb"><div class="grid"></div>
+  <div class="t1"><span class="r">STOP FRAUD</span><br>in <span class="c"><span style="font-family:Inter;font-weight:800">&lt;</span>1 ms</span> ⚡</div>
+  <div class="t2">Real-time AI for insurance claims</div>
+  <div class="pill"><span class="p" style="background:#0f62fe">IBM Z</span><span class="p" style="background:#42be65;color:#052e14">LinuxONE</span><span class="p" style="background:#f1c21b;color:#2a2000">Explainable AI</span></div>
+  <div class="shield">🛡️</div>
+  <div class="stamp">LIVE DEMO ✅</div>
+  <div class="hand">ClaimGuard · IBM Z Datathon 2026</div>
+</div>
+
+<div class="bg" id="flyer"><div class="grid"></div>
+  <div style="position:relative">
+    <div class="kicker">IBM Z DATATHON 2026 · REAL-TIME AI ON TRANSACTIONAL DATA</div>
+    <h1>🛡️ Claim<span>Guard</span></h1>
+    <div class="tag">Honest claims <span class="g">paid in hours.</span><br>Fraud <span class="r">stopped before payout.</span></div>
+
+    <div class="box" style="margin-top:28px"><div style="font:600 26px/1.42 Inter;color:#dbe3f1">
+      Insurers check most claims by hand, so honest customers wait weeks while organised fraud slips through.
+      <b style="color:#fff">ClaimGuard scores every claim the instant it is filed</b>, inside the transaction on IBM Z, using 26 live signals
+      and an identity graph that exposes fraud rings. Every decision comes with exact reasons.</div></div>
+
+    <div class="row">
+      <div class="lane" style="background:rgba(66,190,101,.18);border:3px solid #42be65"><span class="e">✅</span><div>Pay instantly<small>zero manual work</small></div></div>
+      <div class="lane" style="background:rgba(241,194,27,.15);border:3px solid #f1c21b"><span class="e">📎</span><div>One more document<small>quick upload in the app</small></div></div>
+      <div class="lane" style="background:rgba(250,77,86,.17);border:3px solid #fa4d56"><span class="e">🕵️</span><div>Hold &amp; investigate<small>a human always makes the final call</small></div></div>
+    </div>
+
+    <div class="row stats">
+      <div class="box stat"><b style="color:#fa4d56">99%</b><span>fraud value stopped<br>before payout</span></div>
+      <div class="box stat"><b style="color:#42be65">37%</b><span>claims paid<br>instantly</span></div>
+      <div class="box stat"><b style="color:#33b1ff">81%</b><span>fraud caught<br>(rules: 62%)</span></div>
+    </div>
+
+    <div class="box row z" style="margin-top:22px">
+      <div class="zi"><span class="e">🧠</span>Telum on-chip AI</div>
+      <div class="zi"><span class="e">⚙️</span>ML for z/OS + Snap ML</div>
+      <div class="zi"><span class="e">🔐</span>Pervasive encryption</div>
+      <div class="zi"><span class="e">🐧</span>Running live on LinuxONE</div>
+    </div>
+    <div class="live">● Live demo: <span id="url" style="color:#f4f7fb"></span></div>
+    <div class="team"><b style="color:#33b1ff">Team ClaimGuard</b> · <span id="team"></span></div>
+    <div style="margin-top:18px;font:500 18px Inter;color:#8a97ad">Results from a time-based hold-out on synthetic data.</div>
+  </div>
+</div>
+<script>
+  document.getElementById("team").textContent = TEAM.join(" · ");
+  document.getElementById("url").textContent = URL.replace("https://", "");
+  window.ready = document.fonts.ready.then(() => true);
+</script>
+</body>
+</html>

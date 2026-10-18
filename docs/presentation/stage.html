@@ -1,0 +1,509 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ClaimGuard presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;800&family=Caveat:wght@700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="build/data.js"></script>
+<style>
+  :root {
+    --navy: #07142b; --navy2: #0c2350; --blue: #0f62fe; --cyan: #33b1ff; --green: #42be65; --amber: #f1c21b;
+    --red: #fa4d56; --pink: #ff7eb6; --white: #f4f7fb; --muted: #a6b3c9; --card: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--navy); color: var(--white);
+    font-family: Inter, sans-serif; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(1200px 800px at 20% 10%, #12306b 0%, transparent 60%),
+                radial-gradient(1000px 700px at 90% 90%, #0b3a7a 0%, transparent 55%), var(--navy); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .35; }
+  #grid { position: absolute; inset: 0; opacity: .10;
+    background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+    background-size: 64px 64px; mask-image: radial-gradient(circle at 50% 45%, black 30%, transparent 75%); }
+  .scene { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
+  h1, h2, .display { font-family: Poppins, sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .hand { font-family: Caveat, cursive; }
+  .center { position: absolute; left: 0; right: 0; text-align: center; }
+  .w { display: inline-block; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px;
+    font: 600 26px Poppins; background: var(--card); border: 1.5px solid rgba(255,255,255,.15); }
+  .card { position: absolute; border-radius: 28px; background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.14); box-shadow: 0 30px 80px rgba(0,0,0,.35); backdrop-filter: blur(6px); }
+
+  /* persistent UI */
+  #bug { position: absolute; left: 48px; top: 36px; font: 700 28px Poppins; display: flex; gap: 12px; align-items: center; z-index: 50; opacity: 0; }
+  #bug .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 14px var(--red); }
+  #label { position: absolute; right: 48px; top: 34px; z-index: 50; font: 700 22px Poppins; letter-spacing: .18em;
+    padding: 10px 20px; border-radius: 10px; background: var(--blue); opacity: 0; }
+  #progress { position: absolute; left: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, var(--cyan), var(--blue)); z-index: 60; }
+  #cap { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 70; max-width: 1720px; width: max-content;
+    padding: 16px 30px 16px 26px; border-radius: 18px; background: rgba(4, 10, 24, .82); border-left: 8px solid var(--pink);
+    font: 600 31px/1.3 Inter; text-align: center; opacity: 0; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+
+  /* hook */
+  #s-hook .big { position: absolute; left: 0; right: 0; text-align: center; font: 900 220px Poppins; letter-spacing: -0.04em; }
+  #h1 { top: 250px; } #h1 small { display: block; font: 700 54px Poppins; color: var(--muted); letter-spacing: 0; }
+  #h2 { top: 300px; color: var(--amber); }
+  #h3 { top: 200px; font-size: 170px !important; color: var(--red); }
+  #h3 small { display: block; font: 700 54px Poppins; color: var(--white); letter-spacing: 0; }
+  #stamp { position: absolute; left: 50%; top: 640px; transform: translateX(-50%) rotate(-8deg); font: 900 88px Poppins;
+    color: var(--red); border: 10px solid var(--red); padding: 6px 40px; border-radius: 18px; opacity: 0; }
+
+  /* intro */
+  #logo { position: absolute; left: 50%; top: 110px; transform: translateX(-50%); text-align: center; }
+  #shield { font-size: 170px; filter: drop-shadow(0 20px 40px rgba(15,98,254,.6)); }
+  #ring { position: absolute; left: 50%; top: 15px; width: 240px; height: 240px; margin-left: -120px; border-radius: 50%; border: 6px solid var(--cyan); opacity: 0; }
+  #brand { font: 900 120px Poppins; letter-spacing: -0.03em; margin-top: -10px; }
+  #brand .accent { color: var(--cyan); }
+  #tagline { font: 600 40px Poppins; color: var(--muted); margin-top: 6px; }
+  #team { position: absolute; left: 160px; right: 160px; top: 650px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 26px; }
+  .member { padding: 16px 20px; border-radius: 16px; background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.14);
+    font: 600 28px Poppins; text-align: center; }
+  #teamtitle { position: absolute; top: 590px; left: 0; right: 0; text-align: center; font: 700 26px Poppins; letter-spacing: .25em; color: var(--cyan); }
+
+  /* problem */
+  .person { width: 660px; height: 620px; top: 200px; padding: 34px 40px; }
+  #priya { left: 150px; } #rahul { right: 150px; }
+  .person .avatar { font-size: 96px; }
+  .person h2 { font-size: 64px; margin-top: 4px; }
+  .person .amt { font: 800 70px "JetBrains Mono"; margin-top: 8px; }
+  .person .sub { font: 500 30px Inter; color: var(--muted); }
+  .tag { display: inline-block; margin: 10px 8px 0 0; padding: 10px 18px; border-radius: 12px; font: 700 26px Poppins; }
+  .tag.good { background: rgba(66,190,101,.18); color: #7ee29c; border: 1.5px solid rgba(66,190,101,.5); }
+  .tag.bad { background: rgba(250,77,86,.18); color: #ff8f95; border: 1.5px solid rgba(250,77,86,.6); }
+  #queue { position: absolute; left: 50%; top: 160px; transform: translateX(-50%); font: 800 34px Poppins; color: var(--amber);
+    padding: 10px 26px; border-radius: 999px; border: 3px dashed var(--amber); background: rgba(241,194,27,.08); opacity: 0; }
+  #vs { position: absolute; left: 50%; top: 440px; transform: translate(-50%, 0); font: 900 70px Poppins; color: var(--amber); }
+  #miss { position: absolute; left: 0; right: 0; top: 845px; text-align: center; }
+  #miss .x { display: inline-block; margin: 0 18px; font: 800 40px Poppins; padding: 12px 26px; border-radius: 14px;
+    background: rgba(250,77,86,.15); border: 2px solid rgba(250,77,86,.6); }
+
+  /* solution */
+  #scanner { position: absolute; left: 640px; top: 330px; width: 300px; height: 300px; border-radius: 40px;
+    background: linear-gradient(145deg, #1546b5, #0f62fe); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 0 80px rgba(15,98,254,.6); font: 800 34px Poppins; text-align: center; }
+  #scanner .ico { font-size: 110px; }
+  .doc { position: absolute; left: 180px; top: 430px; font-size: 90px; }
+  .lane { position: absolute; left: 1100px; width: 720px; height: 170px; border-radius: 26px; padding: 26px 34px;
+    display: flex; align-items: center; gap: 26px; font: 800 42px Poppins; }
+  .lane small { display: block; font: 600 26px Inter; opacity: .85; margin-top: 4px; }
+  .lane .e { font-size: 76px; }
+  #lg { top: 200px; background: rgba(66,190,101,.18); border: 3px solid var(--green); }
+  #ly { top: 405px; background: rgba(241,194,27,.15); border: 3px solid var(--amber); }
+  #lr { top: 610px; background: rgba(250,77,86,.17); border: 3px solid var(--red); }
+  #never { position: absolute; left: 0; right: 0; top: 850px; text-align: center; font: 800 44px Poppins; }
+  #never span { color: var(--cyan); }
+  .path { position: absolute; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); transform-origin: left center; }
+
+  /* how */
+  .node { position: absolute; top: 380px; width: 290px; height: 220px; border-radius: 26px; padding: 26px 20px; text-align: center;
+    background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.16); }
+  .node .ico { font-size: 72px; } .node b { display: block; font: 800 30px Poppins; margin-top: 8px; } .node span { font: 500 22px Inter; color: var(--muted); }
+  .node.hot { background: linear-gradient(145deg, rgba(15,98,254,.45), rgba(51,177,255,.25)); border-color: var(--cyan); box-shadow: 0 0 60px rgba(51,177,255,.35); }
+  .arrow { position: absolute; top: 482px; height: 8px; width: 70px; border-radius: 4px; background: var(--cyan); transform-origin: left center; }
+  .arrow:after { content: ""; position: absolute; right: -6px; top: -9px; border: 13px solid transparent; border-left: 18px solid var(--cyan); }
+  .q { position: absolute; font: 700 34px Poppins; padding: 14px 26px; border-radius: 16px; background: rgba(241,194,27,.13); border: 2px solid rgba(241,194,27,.55); }
+  #badge-ms { position: absolute; left: 1230px; top: 300px; font: 800 36px "JetBrains Mono"; color: var(--navy); background: var(--amber);
+    padding: 10px 22px; border-radius: 14px; transform: rotate(-6deg); }
+  #badge-shap { position: absolute; left: 1570px; top: 605px; font: 800 30px Poppins; background: var(--green); color: #052e14;
+    padding: 12px 22px; border-radius: 14px; transform: rotate(5deg); }
+
+  /* demo */
+  #live { position: absolute; left: 0; right: 0; top: 380px; text-align: center; font: 900 150px Poppins; }
+  #live .rec { display: inline-block; width: 60px; height: 60px; border-radius: 50%; background: var(--red); margin-right: 30px; box-shadow: 0 0 40px var(--red); vertical-align: middle; }
+  #browser { position: absolute; left: 240px; top: 62px; width: 1440px; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,0,0,.55); border: 2px solid rgba(255,255,255,.18); background: #1b1f27; }
+  #chrome { height: 46px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #2a2f3a; }
+  #chrome i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+  #url { flex: 1; margin-left: 14px; height: 30px; border-radius: 8px; background: #1b1f27; font: 500 17px Inter; color: #cfd6e3;
+    display: flex; align-items: center; padding: 0 14px; gap: 8px; }
+  #viewport { position: relative; width: 1440px; height: 810px; overflow: hidden; background: #0e1117; }
+  #zoom { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; transform-origin: 0 0; }
+  #shot { width: 1440px; height: 810px; display: block; }
+  .hl { position: absolute; border: 5px solid var(--amber); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,.45), 0 0 30px var(--amber); opacity: 0; }
+  .callout { position: absolute; z-index: 40; padding: 18px 26px; border-radius: 18px; font: 800 38px Poppins; color: #111;
+    background: var(--amber); box-shadow: 0 16px 40px rgba(0,0,0,.45); opacity: 0; white-space: nowrap; }
+  .callout.green { background: var(--green); } .callout.red { background: var(--red); color: white; } .callout.cyan { background: var(--cyan); }
+  #onz { position: absolute; right: 60px; top: 990px; }
+
+  /* results */
+  .stat { position: absolute; top: 230px; width: 500px; height: 380px; padding: 36px; text-align: center; }
+  .stat .num { font: 900 150px Poppins; letter-spacing: -0.04em; line-height: 1.05; }
+  .stat .lab { font: 700 34px Poppins; margin-top: 10px; }
+  #st1 { left: 170px; } #st1 .num { color: var(--red); }
+  #st2 { left: 710px; } #st2 .num { color: var(--green); }
+  #st3 { left: 1250px; } #st3 .num { color: var(--cyan); font-size: 120px; padding-top: 22px; }
+  .barrow { position: absolute; left: 260px; width: 1400px; height: 70px; font: 700 32px Poppins; }
+  .barrow .name { position: absolute; left: 0; top: 14px; width: 300px; }
+  .barrow .bar { position: absolute; left: 320px; top: 6px; height: 58px; border-radius: 12px; width: 0; }
+  .barrow .val { position: absolute; top: 14px; font: 800 36px "JetBrains Mono"; }
+  #br1 { top: 690px; } #br2 { top: 780px; }
+  #foot { position: absolute; left: 0; right: 0; top: 880px; text-align: center; font: 500 24px Inter; color: var(--muted); }
+
+  /* ibm z */
+  #ztitle { position: absolute; left: 0; right: 0; top: 100px; text-align: center; font: 900 120px Poppins; }
+  #ztitle .ibm { background: repeating-linear-gradient(180deg, #fff 0 9px, transparent 9px 14px); -webkit-background-clip: text; color: transparent; }
+  .zb { position: absolute; width: 760px; height: 150px; padding: 26px 34px; display: flex; gap: 26px; align-items: center; font: 800 38px Poppins; }
+  .zb .e { font-size: 70px; } .zb small { display: block; font: 500 24px Inter; color: var(--muted); margin-top: 4px; }
+  #zb1 { left: 170px; top: 310px; } #zb2 { left: 990px; top: 310px; } #zb3 { left: 170px; top: 490px; } #zb4 { left: 990px; top: 490px; border-color: var(--green); }
+  #zstamp { position: absolute; left: 50%; top: 700px; transform: translateX(-50%) rotate(-4deg); font: 900 56px Poppins; color: var(--green);
+    border: 7px solid var(--green); padding: 4px 36px; border-radius: 16px; opacity: 0; }
+
+  /* close */
+  #cl1, #cl2 { position: absolute; left: 0; right: 0; text-align: center; font: 900 96px Poppins; letter-spacing: -0.03em; }
+  #cl1 { top: 360px; } #cl2 { top: 490px; color: var(--cyan); }
+  #thanks { position: absolute; left: 0; right: 0; top: 700px; text-align: center; font: 700 64px Caveat; color: var(--amber); }
+  #cllogo { position: absolute; left: 0; right: 0; top: 200px; text-align: center; font: 800 54px Poppins; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob" id="b1" style="width:700px;height:700px;background:#0f62fe;left:-100px;top:-150px"></div>
+  <div class="blob" id="b2" style="width:600px;height:600px;background:#33b1ff;right:-120px;bottom:-160px"></div>
+  <div class="blob" id="b3" style="width:500px;height:500px;background:#8a3ffc;left:900px;top:500px;opacity:.18"></div>
+  <div id="grid"></div>
+
+  <div id="bug"><span class="dot"></span>🛡️ ClaimGuard</div>
+  <div id="label">THE PROBLEM</div>
+
+  <!-- HOOK -->
+  <section class="scene" id="s-hook">
+    <div class="big" id="h1"><span id="h1n">₹0</span><small>Priya's claim after a small accident</small></div>
+    <div class="big" id="h2">⏳ 14 DAYS<small style="display:block;font:700 54px Poppins;color:#f4f7fb;letter-spacing:0">...of waiting</small></div>
+    <div class="big" id="h3">₹2,40,000<small>🚩 a fake "total loss" claim</small></div>
+    <div id="stamp">PAID IN 2 DAYS</div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="scene" id="s-intro">
+    <div id="ring"></div>
+    <div id="logo"><div id="shield">🛡️</div><div id="brand">Claim<span class="accent">Guard</span></div>
+      <div id="tagline">Real-time AI for insurance claims · on IBM Z</div></div>
+    <div id="teamtitle">TEAM CLAIMGUARD · IBM Z DATATHON 2026</div>
+    <div id="team"></div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="scene" id="s-problem">
+    <div id="queue">⚠️ SAME MANUAL QUEUE</div>
+    <div class="card person" id="priya"><div class="avatar">👩🏽</div><h2>Priya</h2>
+      <div class="sub">Minor accident · scratched bumper</div><div class="amt">₹18,000</div>
+      <div><span class="tag good">✔ Honest</span><span class="tag good">✔ Police report</span></div>
+      <div class="hand" style="font-size:46px;color:#ffd166;margin-top:22px">"Why is this taking 2 weeks?! 😩"</div></div>
+    <div id="vs">VS</div>
+    <div class="card person" id="rahul"><div class="avatar">🕶️</div><h2>Rahul</h2>
+      <div class="sub">"Total loss" claim</div><div class="amt">₹2,40,000</div>
+      <div id="rtags"><span class="tag bad">📅 Policy: 9 days old</span><span class="tag bad">🚫 No police report</span><span class="tag bad">🔗 7 linked customers</span></div></div>
+    <div id="miss"><span class="x">❌ Manual checks</span><span class="x">❌ Rule engines</span><span class="x" style="background:rgba(241,194,27,.15);border-color:rgba(241,194,27,.6)">💸 Higher premiums for everyone</span></div>
+  </section>
+
+  <!-- SOLUTION -->
+  <section class="scene" id="s-solution">
+    <div class="center display" style="top:90px;font-size:64px">Every claim. Scored <span style="color:var(--cyan)">instantly.</span></div>
+    <div class="doc" id="d1">📄</div><div class="doc" id="d2">📄</div><div class="doc" id="d3">📄</div>
+    <div id="scanner"><div class="ico">🛡️</div>ClaimGuard</div>
+    <div class="path" id="p1" style="left:940px;top:478px;width:170px;transform:rotate(-34deg)"></div>
+    <div class="path" id="p2" style="left:940px;top:488px;width:170px"></div>
+    <div class="path" id="p3" style="left:940px;top:498px;width:170px;transform:rotate(34deg)"></div>
+    <div class="lane" id="lg"><span class="e">✅</span><div>Pay instantly<small>zero manual work</small></div></div>
+    <div class="lane" id="ly"><span class="e">📎</span><div>One more document<small>quick upload in the app</small></div></div>
+    <div class="lane" id="lr"><span class="e">🕵️</span><div>Hold & investigate<small>a human makes the call</small></div></div>
+    <div id="never">🤝 A machine <span>never</span> rejects anyone.</div>
+  </section>
+
+  <!-- HOW -->
+  <section class="scene" id="s-how">
+    <div class="center display" style="top:90px;font-size:64px">How it works <span class="hand" style="color:var(--amber);font-size:72px">(in under a millisecond!)</span></div>
+    <div class="node" id="n1" style="left:80px"><div class="ico">📝</div><b>Claim filed</b><span>app · agent · branch</span></div>
+    <div class="arrow" id="a1" style="left:378px"></div>
+    <div class="node" id="n2" style="left:455px"><div class="ico">📊</div><b>26 live signals</b><span>bill · policy age · docs</span></div>
+    <div class="arrow" id="a2" style="left:753px"></div>
+    <div class="node" id="n3" style="left:830px"><div class="ico">🕸️</div><b>Identity graph</b><span>shared phones & banks</span></div>
+    <div class="arrow" id="a3" style="left:1128px"></div>
+    <div class="node hot" id="n4" style="left:1205px"><div class="ico">🧠</div><b>AI model</b><span>gradient-boosted trees</span></div>
+    <div class="arrow" id="a4" style="left:1503px"></div>
+    <div class="node" id="n5" style="left:1580px;width:260px"><div class="ico">🚦</div><b>Decision</b><span>+ exact reasons</span></div>
+    <div class="q" id="q1" style="left:200px;top:700px">💰 How big is the bill?</div>
+    <div class="q" id="q2" style="left:730px;top:760px">📅 How old is the policy?</div>
+    <div class="q" id="q3" style="left:1260px;top:700px">🔗 Who are they connected to?</div>
+    <div id="badge-ms">⚡ &lt; 1 ms</div>
+    <div id="badge-shap">✔ SHAP reasons</div>
+  </section>
+
+  <!-- DEMO -->
+  <section class="scene" id="s-demo">
+    <div id="live"><span class="rec"></span>LIVE DEMO</div>
+    <div id="browser">
+      <div id="chrome"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
+        <div id="url">🔒 <span id="urltext"></span></div></div>
+      <div id="viewport"><div id="zoom"><img id="shot" src=""><div class="hl" id="hl"></div></div></div>
+    </div>
+    <div class="callout" id="c1" style="left:120px;top:560px">← real IBM Z hardware! 🐧</div>
+    <div class="callout cyan" id="c2" style="right:120px;top:150px">⚡ scored in ~0.3 ms</div>
+    <div class="callout" id="c3" style="left:120px;top:180px">🔍 exact reasons (SHAP)</div>
+    <div class="callout cyan" id="c4" style="left:140px;top:820px">✍️ plain-English note</div>
+    <div class="callout green" id="c5" style="right:110px;top:180px">✅ 0.6 / 100 → PAID TODAY</div>
+    <div class="callout red" id="c6" style="right:110px;top:150px">🚨 99.2 / 100 → INVESTIGATOR</div>
+    <div class="callout green" id="c7" style="left:120px;top:760px">🙏 still polite</div>
+    <div class="callout red" id="c8" style="right:110px;top:150px">🕸️ FRAUD RING · one garage</div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="scene" id="s-results">
+    <div class="center display" style="top:90px;font-size:64px">Does it actually work? 🤔</div>
+    <div class="card stat" id="st1"><div class="num"><span id="n99">0</span>%</div><div class="lab">of fraudulent payout<br>value stopped</div></div>
+    <div class="card stat" id="st2"><div class="num"><span id="n37">0</span>%</div><div class="lab">of claims paid<br>instantly</div></div>
+    <div class="card stat" id="st3"><div class="num mono">12,000</div><div class="lab">most recent claims<br>(held out by time)</div></div>
+    <div class="barrow" id="br1"><div class="name">📏 Red-flag rules</div><div class="bar" id="bar1" style="background:#8d8d8d"></div><div class="val" id="v1">62%</div></div>
+    <div class="barrow" id="br2"><div class="name">🛡️ ClaimGuard AI</div><div class="bar" id="bar2" style="background:linear-gradient(90deg,#0f62fe,#33b1ff)"></div><div class="val" id="v2">81%</div></div>
+    <div id="foot">Share of fraud caught at the same workload · time-based hold-out · synthetic data</div>
+  </section>
+
+  <!-- IBM Z -->
+  <section class="scene" id="s-ibmz">
+    <div id="ztitle">Why <span class="ibm">IBM Z</span>?</div>
+    <div class="card zb" id="zb1"><span class="e">🧠</span><div>Telum on-chip AI<small>scores inside the transaction</small></div></div>
+    <div class="card zb" id="zb2"><span class="e">⚙️</span><div>ML for z/OS + Snap ML<small>served to the claims system</small></div></div>
+    <div class="card zb" id="zb3"><span class="e">🔐</span><div>Pervasive encryption<small>data never leaves the platform</small></div></div>
+    <div class="card zb" id="zb4"><span class="e">🐧</span><div>Live on LinuxONE<small>whole AI stack compiled for s390x</small></div></div>
+    <div id="zstamp">✅ RUNNING LIVE TODAY</div>
+  </section>
+
+  <!-- CLOSE -->
+  <section class="scene" id="s-close">
+    <div id="cllogo">🛡️ ClaimGuard</div>
+    <div id="cl1">Honest claims, paid in hours.</div>
+    <div id="cl2">Fraud, stopped before payout.</div>
+    <div id="thanks">Thank you! 🙏</div>
+  </section>
+
+  <div id="progress"></div>
+  <div id="cap"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const S = id => TL.scenes.find(s => s.id === id);
+const L = (sc, n) => TL.lines.find(l => l.scene === sc && l.n === n);
+const tl = gsap.timeline({ paused: true });
+const LABELS = { problem: "THE PROBLEM", solution: "THE SOLUTION", how: "HOW IT WORKS", demo: "LIVE DEMO",
+                 results: "RESULTS", ibmz: "WHY IBM Z" };
+const SPEAKER = { T: "#ff7eb6", R: "#33b1ff" };
+
+// split text into word spans for kinetic typography
+function words(el) { el.innerHTML = el.textContent.trim().split(/\s+/).map(w => `<span class="w">${w}</span>`).join(" "); return el.querySelectorAll(".w"); }
+
+// ---------- scene switching
+TL.scenes.forEach((sc, i) => {
+  const el = $("#s-" + sc.id);
+  const inAt = i === 0 ? 0 : sc.start - 0.3;
+  tl.fromTo(el, { autoAlpha: 0, scale: 1.03 }, { autoAlpha: 1, scale: 1, duration: 0.45, ease: "power2.out" }, inAt);
+  if (i < TL.scenes.length - 1) tl.to(el, { autoAlpha: 0, scale: 0.98, duration: 0.3, ease: "power2.in" }, TL.scenes[i + 1].start - 0.3);
+  if (LABELS[sc.id]) tl.fromTo("#label", { autoAlpha: 0, x: 40 }, { autoAlpha: 1, x: 0, duration: 0.4, ease: "back.out(2)", immediateRender: false }, inAt + 0.2);
+  else tl.to("#label", { autoAlpha: 0, duration: 0.2 }, inAt);
+});
+tl.to("#bug", { autoAlpha: 1, duration: 0.4 }, S("problem").start - 0.2);
+tl.to("#bug", { autoAlpha: 0, duration: 0.3 }, S("close").start - 0.3);
+tl.fromTo("#progress", { width: 0 }, { width: 1920, ease: "none", duration: TL.duration }, 0);
+
+// ---------- HOOK
+{
+  const a = L("hook", 0), b = L("hook", 1), c = L("hook", 2);
+  const counter = { v: 0 };
+  tl.fromTo("#h1", { autoAlpha: 0, scale: 1.6 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: "power4.out" }, a.start);
+  tl.to(counter, { v: 18000, duration: 0.9, ease: "power3.out", onUpdate: () => $("#h1n").textContent = "₹" + Math.round(counter.v).toLocaleString("en-IN") }, a.start);
+  tl.to("#h1", { autoAlpha: 0, y: -60, duration: 0.3 }, b.start - 0.1);
+  tl.fromTo("#h2", { autoAlpha: 0, scale: 2.2 }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "power4.out" }, b.start + 0.85);
+  tl.fromTo("#h2", { x: -12 }, { x: 12, duration: 0.05, repeat: 7, yoyo: true }, b.start + 1.15);
+  tl.to("#h2", { autoAlpha: 0, y: -60, duration: 0.3 }, c.start - 0.1);
+  tl.fromTo("#h3", { autoAlpha: 0, y: 80 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "power3.out" }, c.start);
+  tl.fromTo("#stamp", { autoAlpha: 0, scale: 3, rotation: -25 }, { autoAlpha: 1, scale: 1, rotation: -8, duration: 0.28, ease: "power4.in" }, c.start + 2.0);
+}
+
+// ---------- INTRO
+{
+  const st = S("intro").start;
+  const team = $("#team");
+  TEAM.forEach(n => { const d = document.createElement("div"); d.className = "member"; d.textContent = n; team.appendChild(d); });
+  tl.fromTo("#shield", { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2.2)" }, st);
+  tl.fromTo("#ring", { autoAlpha: 0.9, scale: 0.4 }, { autoAlpha: 0, scale: 2.4, duration: 1.0, ease: "power2.out" }, st + 0.1);
+  tl.fromTo("#brand", { autoAlpha: 0, y: 40, letterSpacing: "0.2em" }, { autoAlpha: 1, y: 0, letterSpacing: "-0.03em", duration: 0.7, ease: "power3.out" }, st + 0.25);
+  tl.fromTo("#tagline", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.5 }, st + 0.6);
+  tl.fromTo("#teamtitle", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, st + 0.7);
+  tl.fromTo("#team .member", { autoAlpha: 0, y: 30, scale: 0.8 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.18, ease: "back.out(2)" }, st + 0.9);
+}
+
+// ---------- PROBLEM
+{
+  const a = L("problem", 0), b = L("problem", 1), c = L("problem", 2), d = L("problem", 3);
+  tl.fromTo("#priya", { autoAlpha: 0, x: -120, rotation: -4 }, { autoAlpha: 1, x: 0, rotation: -2, duration: 0.55, ease: "back.out(1.6)" }, a.start + 0.3);
+  tl.fromTo("#rahul", { autoAlpha: 0, x: 120, rotation: 4 }, { autoAlpha: 1, x: 0, rotation: 2, duration: 0.55, ease: "back.out(1.6)" }, a.start + 0.7);
+  tl.fromTo("#vs", { autoAlpha: 0, scale: 0 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(3)" }, a.start + 1.1);
+  tl.fromTo("#queue", { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, b.start + 1.0);
+  tl.fromTo("#rtags .tag", { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1, duration: 0.3, stagger: 1.4, ease: "back.out(3)" }, c.start + 0.4);
+  tl.to("#rahul", { boxShadow: "0 0 70px rgba(250,77,86,.55)", borderColor: "rgba(250,77,86,.8)", duration: 0.5 }, c.start + 3.5);
+  tl.fromTo("#miss .x", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.35, stagger: 0.9, ease: "back.out(2)" }, d.start + 0.2);
+}
+
+// ---------- SOLUTION
+{
+  const a = L("solution", 0), b = L("solution", 1), c = L("solution", 2);
+  tl.fromTo("#scanner", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }, a.start);
+  ["#d1", "#d2", "#d3"].forEach((d, k) => {
+    tl.fromTo(d, { autoAlpha: 0, x: -200 }, { autoAlpha: 1, x: 0, duration: 0.3 }, a.start + 0.5 + k * 0.5);
+    tl.to(d, { x: 560, scale: 0.4, autoAlpha: 0, duration: 0.6, ease: "power2.in" }, a.start + 0.9 + k * 0.5);
+  });
+  tl.fromTo("#scanner", { boxShadow: "0 0 80px rgba(15,98,254,.6)" }, { boxShadow: "0 0 140px rgba(51,177,255,.95)", duration: 0.25, repeat: 5, yoyo: true }, a.start + 1.2);
+  tl.fromTo(".path", { scaleX: 0 }, { scaleX: 1, duration: 0.4, stagger: 0.12 }, a.start + 2.5);
+  tl.fromTo("#lg", { autoAlpha: 0, x: 80 }, { autoAlpha: 1, x: 0, duration: 0.4, ease: "back.out(2)" }, b.start + 0.2);
+  tl.fromTo("#ly", { autoAlpha: 0, x: 80 }, { autoAlpha: 1, x: 0, duration: 0.4, ease: "back.out(2)" }, b.start + 1.9);
+  tl.fromTo("#lr", { autoAlpha: 0, x: 80 }, { autoAlpha: 1, x: 0, duration: 0.4, ease: "back.out(2)" }, c.start + 0.3);
+  tl.fromTo("#never", { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.5 }, c.start + 3.2);
+}
+
+// ---------- HOW
+{
+  const st = S("how").start, a = L("how", 0), b = L("how", 1);
+  ["#n1", "#n2", "#n3", "#n4", "#n5"].forEach((n, k) => {
+    tl.fromTo(n, { autoAlpha: 0, y: 40, scale: 0.85 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, st + 0.5 + k * 0.55);
+    if (k < 4) tl.fromTo(`#a${k + 1}`, { scaleX: 0 }, { scaleX: 1, duration: 0.3 }, st + 0.75 + k * 0.55);
+  });
+  const qd = (a.end - a.start);
+  tl.fromTo("#q1", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, a.start + qd * 0.42);
+  tl.fromTo("#q2", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, a.start + qd * 0.62);
+  tl.fromTo("#q3", { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, a.start + qd * 0.80);
+  tl.fromTo("#badge-ms", { autoAlpha: 0, scale: 2 }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "power4.out" }, b.start + 1.6);
+  tl.fromTo("#badge-shap", { autoAlpha: 0, scale: 2 }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "power4.out" }, b.start + 3.6);
+}
+
+// ---------- DEMO
+const D = DEMO, VW = 1440, VH = 810, BASE = 1;
+const demoLines = TL.lines.filter(l => l.scene === "demo");
+function focus(b, z) {
+  const s = BASE * z, cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+  let x = VW / 2 - cx * s, y = VH / 2 - cy * s;
+  x = Math.min(0, Math.max(VW - 1440 * s, x)); y = Math.min(0, Math.max(VH - 810 * s, y));
+  return { x, y, scale: s };
+}
+function hlTo(b, at, pad = 10) {
+  tl.set("#hl", { left: b.x - pad, top: b.y - pad, width: b.width + 2 * pad, height: b.height + 2 * pad }, at);
+  tl.fromTo("#hl", { autoAlpha: 0, scale: 1.15 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, at);
+}
+const hlOff = at => tl.to("#hl", { autoAlpha: 0, duration: 0.25 }, at);
+const pop = (id, at, out) => { tl.fromTo(id, { autoAlpha: 0, scale: 0.6, rotation: -6 }, { autoAlpha: 1, scale: 1, rotation: -2, duration: 0.35, ease: "back.out(2.5)" }, at); if (out) tl.to(id, { autoAlpha: 0, duration: 0.25 }, out); };
+{
+  const [l0, l1, l2, l3, l4, l5, l6, l7] = demoLines;
+  const B = D.boxes;
+  $("#urltext").textContent = URL.replace("https://", "");
+  tl.fromTo("#live", { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, l0.start);
+  tl.fromTo("#live .rec", { autoAlpha: 1 }, { autoAlpha: 0.2, duration: 0.3, repeat: 3, yoyo: true }, l0.start + 0.4);
+  tl.to("#live", { autoAlpha: 0, scale: 1.4, duration: 0.3 }, l1.start - 0.5);
+  tl.fromTo("#browser", { autoAlpha: 0, y: 200, rotationX: 15 }, { autoAlpha: 1, y: 0, rotationX: 0, duration: 0.6, ease: "power3.out" }, l1.start - 0.4);
+  tl.set("#zoom", focus({ x: 0, y: 0, width: 1440, height: 810 }, 1), 0);
+  // line 1: zoom on s390x
+  const z1 = l1.start + (l1.end - l1.start) * 0.5;
+  tl.to("#zoom", { ...focus(B.s390x, 2.6), duration: 0.9, ease: "power2.inOut" }, z1 - 0.6);
+  hlTo(B.s390x, z1 + 0.3, 8); pop("#c1", z1 + 0.5, l1.end + 0.2);
+  // line 2: zoom out, spotlight latency
+  tl.to("#zoom", { ...focus({ x: 0, y: 0, width: 1440, height: 810 }, 1), duration: 0.7, ease: "power2.inOut" }, l2.start - 0.1);
+  hlOff(l2.start); hlTo(B.latency, l2.start + 1.2); pop("#c2", l2.start + 1.4, l2.end + 0.2); hlOff(l2.end + 0.2);
+  // line 3: reasons
+  tl.to("#zoom", { ...focus(B.reasons_all, 1.5), duration: 0.8, ease: "power2.inOut" }, l3.start + 2.0);
+  hlTo(B.reasons_all, l3.start + 2.6); pop("#c3", l3.start + 2.8, l3.end + 0.2); hlOff(l3.end + 0.1);
+  // line 4: investigator note
+  tl.to("#zoom", { ...focus(B.note, 1.35), duration: 0.6, ease: "power2.inOut" }, l4.start + 0.6);
+  hlTo(B.note, l4.start + 1.2); pop("#c4", l4.start + 1.4, l4.end + 0.2); hlOff(l4.end + 0.1);
+  // line 5: Priya
+  tl.to("#zoom", { ...focus(B.priya_gauge, 1.6), duration: 0.6, ease: "power2.inOut" }, l5.start + 0.8);
+  hlTo(B.priya_gauge, l5.start + 1.6); pop("#c5", l5.start + 2.4, l5.end + 0.2); hlOff(l5.end + 0.1);
+  // line 6: Rahul
+  tl.to("#zoom", { ...focus(B.rahul_banner, 1.25), duration: 0.6, ease: "power2.inOut" }, l6.start + 0.4);
+  hlTo(B.rahul_banner, l6.start + 1.0); pop("#c6", l6.start + 1.4, l6.start + (l6.end - l6.start) * 0.62);
+  hlOff(l6.start + (l6.end - l6.start) * 0.62);
+  tl.to("#zoom", { ...focus(B.rahul_msg, 1.8), duration: 0.6, ease: "power2.inOut" }, l6.start + (l6.end - l6.start) * 0.62);
+  hlTo(B.rahul_msg, l6.start + (l6.end - l6.start) * 0.68); pop("#c7", l6.start + (l6.end - l6.start) * 0.72, l6.end + 0.2); hlOff(l6.end + 0.1);
+  // line 7: rings
+  tl.to("#zoom", { ...focus(B.graph, 1.15), duration: 0.8, ease: "power2.inOut" }, l7.start + 0.6);
+  pop("#c8", l7.start + 2.0, S("demo").end - 0.1);
+}
+
+// ---------- RESULTS
+{
+  const a = L("results", 0), b = L("results", 1), c = L("results", 2);
+  const n99 = { v: 0 }, n37 = { v: 0 };
+  tl.fromTo("#st3", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, b.start + 0.6);
+  tl.fromTo("#st1", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, b.start + 2.6);
+  tl.to(n99, { v: 99, duration: 1.3, ease: "power3.out", onUpdate: () => $("#n99").textContent = Math.round(n99.v) }, b.start + 2.8);
+  tl.fromTo("#st2", { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, c.start + 0.2);
+  tl.to(n37, { v: 37, duration: 1.1, ease: "power3.out", onUpdate: () => $("#n37").textContent = Math.round(n37.v) }, c.start + 0.4);
+  tl.fromTo(".barrow", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, c.start + 2.6);
+  tl.fromTo("#bar1", { width: 0 }, { width: 1000 * 0.62, duration: 1.0, ease: "power2.out" }, c.start + 3.0);
+  tl.fromTo("#bar2", { width: 0 }, { width: 1000 * 0.81, duration: 1.2, ease: "power2.out" }, c.start + 3.4);
+  tl.set("#v1", { left: 320 + 620 + 20 }, 0); tl.set("#v2", { left: 320 + 810 + 20 }, 0);
+  tl.fromTo("#v1", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, c.start + 3.9);
+  tl.fromTo("#v2", { autoAlpha: 0, scale: 1.6 }, { autoAlpha: 1, scale: 1, duration: 0.3 }, c.start + 4.5);
+  tl.fromTo("#foot", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, c.start + 4.8);
+}
+
+// ---------- IBM Z
+{
+  const st = S("ibmz").start, b = L("ibmz", 1);
+  tl.fromTo("#ztitle", { autoAlpha: 0, y: -40 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "back.out(2)" }, st);
+  ["#zb1", "#zb2", "#zb3", "#zb4"].forEach((z, k) => tl.fromTo(z, { autoAlpha: 0, y: 40, scale: 0.9 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2)" }, st + 1.6 + k * 0.6));
+  tl.fromTo("#zstamp", { autoAlpha: 0, scale: 2.6, rotation: -20 }, { autoAlpha: 1, scale: 1, rotation: -4, duration: 0.3, ease: "power4.in" }, b.start + 2.0);
+}
+
+// ---------- CLOSE
+{
+  const a = L("close", 0), b = L("close", 1);
+  tl.fromTo("#cllogo", { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: 0.5 }, a.start - 0.1);
+  tl.fromTo(words($("#cl1")), { autoAlpha: 0, y: 60, rotation: 6 }, { autoAlpha: 1, y: 0, rotation: 0, duration: 0.4, stagger: 0.12, ease: "back.out(2)" }, a.start + 0.6);
+  tl.fromTo(words($("#cl2")), { autoAlpha: 0, y: 60, rotation: 6 }, { autoAlpha: 1, y: 0, rotation: 0, duration: 0.4, stagger: 0.12, ease: "back.out(2)" }, b.start);
+  tl.fromTo("#thanks", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(2.5)" }, b.end - 1.2);
+}
+
+// ---------- per-frame render: background drift, captions, demo footage
+const segOrder = ["live", "investigate", "priya", "rahul", "rings"];
+const segStart = segOrder.map(k => D.segments[k].frame).concat([D.ts.length]);
+function demoFrame(t) {
+  const ls = demoLines;
+  const map = [[1, "live"], [3, "investigate"], [5, "priya"], [6, "rahul"], [7, "rings"]];
+  let seg = 0, t0 = ls[1].start;
+  for (let k = 0; k < map.length; k++) if (t >= ls[map[k][0]].start) { seg = k; t0 = ls[map[k][0]].start; }
+  const a = segStart[seg], b = segStart[seg + 1] - 1, el = Math.max(0, t - t0);
+  let i = a;
+  while (i < b && D.ts[i + 1] <= el) i++;
+  return i;
+}
+let lastSrc = "";
+window.render = async function (t) {
+  tl.seek(t, false);
+  $("#b1").style.transform = `translate(${Math.sin(t * 0.2) * 80}px, ${Math.cos(t * 0.17) * 60}px)`;
+  $("#b2").style.transform = `translate(${Math.cos(t * 0.15) * 90}px, ${Math.sin(t * 0.21) * 70}px)`;
+  $("#b3").style.transform = `translate(${Math.sin(t * 0.11) * 120}px, ${Math.cos(t * 0.13) * 90}px)`;
+  // scene label text
+  const cur = [...TL.scenes].reverse().find(sc => t >= sc.start - 0.3);
+  if (cur && LABELS[cur.id] && $("#label").textContent !== LABELS[cur.id]) $("#label").textContent = LABELS[cur.id];
+  // captions
+  const cap = $("#cap");
+  const line = TL.lines.find(l => t >= l.start - 0.05 && t <= l.end + 0.15);
+  if (line) {
+    if (cap.dataset.i !== String(line.i)) { cap.textContent = line.text; cap.dataset.i = line.i; cap.style.borderLeftColor = SPEAKER[line.speaker]; }
+    const k = Math.min(1, (t - line.start + 0.05) / 0.15, (line.end + 0.15 - t) / 0.15);
+    cap.style.opacity = Math.max(0, k);
+  } else cap.style.opacity = 0;
+  // demo footage
+  const ds = S("demo");
+  if (t >= ds.start - 0.5 && t <= ds.end + 0.5) {
+    const src = `build/demo_frames/${String(demoFrame(t)).padStart(5, "0")}.jpg`;
+    if (src !== lastSrc) { const img = $("#shot"); img.src = src; lastSrc = src; try { await img.decode(); } catch (e) {} }
+  }
+  return true;
+};
+window.ready = (async () => { await document.fonts.ready; return true; })();
+</script>
+</body>
+</html>
